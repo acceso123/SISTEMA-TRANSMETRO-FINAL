@@ -1,0 +1,131 @@
+﻿@model IEnumerable<TRANSMETRO.Models.Bus>
+@{ ViewData["Title"] = "CONTROL DE BUSES"; }
+
+<div class="d-flex justify-content-between align-items-center mt-4 border-bottom pb-2">
+    <h2 class="text-uppercase fw-bold text-primary">MONITOREO DE BUSES EN TIEMPO REAL</h2>
+    <span class="badge bg-danger pulse-animation" style="font-size:16px;">◉ EN VIVO</span>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0 text-uppercase fw-bold">REGISTRAR SALIDA DE UNIDAD</h5>
+            </div>
+            <div class="card-body bg-light">
+                <form action="@Url.Action("RegistrarBus", "Transmetro")" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase">LÍNEA ASIGNADA</label>
+                        <input type="text" name="linea" class="form-control"/>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase">CAPACIDAD MÁXIMA</label>
+                        <input type="number" name="capacidad" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase">PASAJEROS A BORDO</label>
+                        <input type="number" name="ocupacion" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold text-uppercase">VALIDAR SALIDA</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <h5 class="mb-0 text-uppercase fw-bold">AFORO EN UNIDADES</h5>
+                <small>ACTUALIZACIÓN: <span id="relojBuses"></span></small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">
+                        <thead class="table-secondary text-uppercase">
+                            <tr>
+                                <th style="width: 15%;">ID - BUS</th>
+                                <th style="width: 25%;">LÍNEA</th>
+                                <th style="width: 30%;">OCUPACIÓN / MÁXIMA</th>
+                                <th style="width: 30%;">INSTRUCCIÓN ALGORÍTMICA</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaBuses">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pulse-animation { animation: pulse 1.5s infinite; }
+    @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    .badge-estado { display: inline-block; width: 100%; text-align: center; font-size: 13px; }
+</style>
+
+<script>
+    // BASE DE DATOS
+    const datosBuses = @Html.Raw(Json.Serialize(Model)) || [];
+    
+    // MAPEO
+    let flota = datosBuses.map(b => {
+        return {
+            id: b.idBus || b.IdBus,
+            linea: b.lineaAsignada || b.LineaAsignada,
+            max: b.capacidadMaxima || b.CapacidadMaxima,
+            ocup: b.pasajerosActuales || b.PasajerosActuales
+        };
+    });
+
+    // SIMULACIÓN - FLUJO DE PASAJEROS EN BUSES
+    function actualizarBuses() {
+        const tbody = document.getElementById('tablaBuses');
+        tbody.innerHTML = '';
+        document.getElementById('relojBuses').innerText = new Date().toLocaleTimeString();
+
+        flota.forEach(bus => {
+            bus.ocup += Math.floor(Math.random() * 5); 
+
+            if (bus.ocup > bus.max) bus.ocup = bus.max;
+
+            // REGLA 25%
+            let porcentajeOcup = (bus.ocup / bus.max) * 100;
+            let penalizado = (porcentajeOcup < 25);
+
+            let colorBarra = "bg-success";
+            let estadoHtml = `<span class="badge bg-success badge-estado p-2">SALIDA AUTORIZADA - ${porcentajeOcup.toFixed(1)}%</span>`;
+
+            if (penalizado) {
+                // POCOS PASAJEROS A BORDO - REGLA 25%
+                colorBarra = "bg-warning";
+                estadoHtml = `<span class="badge bg-warning text-dark badge-estado p-2 pulse-animation">REGLA 25% - ESPERA DE 5 MIN</span>`;
+            } else if (porcentajeOcup > 85) {
+                // BUS MUY LLENO - ALERTA DE SOBRECARGA
+                colorBarra = "bg-danger";
+            }
+
+            // DISEÑO DE FILA
+            let fila = `
+                <tr>
+                    <td><strong>${bus.id}</strong></td>
+                    <td class="text-uppercase fw-bold text-muted" style="font-size: 13px;">${bus.linea}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 18px;">
+                                <div class="progress-bar ${colorBarra} progress-bar-striped progress-bar-animated" style="width: ${porcentajeOcup}%"></div>
+                            </div>
+                            <span class="fw-bold" style="min-width: 60px; text-align: right; font-size: 13px;">${bus.ocup} / ${bus.max}</span>
+                        </div>
+                    </td>
+                    <td>${estadoHtml}</td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+    }
+
+    // ACTUALIZACIÓN CADA 2.5 SEGUNDOS
+    setInterval(actualizarBuses, 2500);
+    actualizarBuses();
+</script>

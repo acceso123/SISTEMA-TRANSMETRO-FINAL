@@ -1,0 +1,124 @@
+﻿@{
+    ViewData["Title"] = "MENÚ PRINCIAL";
+}
+
+<div class="text-center mt-4 mb-5">
+    <h2 class="display-5 fw-bold text-uppercase" style="color: #003366;">SISTEMA DE CONTROL CENTRAL - TRANSMETRO</h2>
+    <p class="lead text-muted">PANEL DE ADMINISTRACIÓN DE LA RED DE TRANSPORTE</p>
+</div>
+
+<div class="row text-center mt-4 mb-5">
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-info h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted text-uppercase fw-bold" style="font-size: 14px;">ESTACIONES</h5>
+                <h2 class="text-info display-5 fw-bold">@ViewBag.TotalEstaciones</h2>
+                <a href="@Url.Action("Estaciones", "Transmetro")" class="btn btn-sm btn-outline-info mt-2 w-100">GESTIONAR</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-warning h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted text-uppercase fw-bold" style="font-size: 14px;">BUSES EN CIRCULACIÓN</h5>
+                <h2 class="text-warning display-5 fw-bold">@ViewBag.TotalBuses</h2>
+                <a href="@Url.Action("Buses", "Transmetro")" class="btn btn-sm btn-outline-warning mt-2 w-100">CONTROL DE BUSES</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-success h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted text-uppercase fw-bold" style="font-size: 14px;">LÍNEAS</h5>
+                <h2 class="text-success display-5 fw-bold">@ViewBag.TotalLineas</h2>
+                <a href="@Url.Action("Rutas", "Transmetro")" class="btn btn-sm btn-outline-success mt-2 w-100">VER GPS</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card shadow-sm border-danger h-100">
+            <div class="card-body">
+                <h5 class="card-title text-muted text-uppercase fw-bold" style="font-size: 14px;">ESTADO DEL SISTEMA</h5>
+                <h2 class="text-danger fw-bold mt-3 mb-3" style="font-size: 26px;">EN LÍNEA</h2>
+                <span class="badge bg-danger pulse-animation w-100 py-2">MONITOREO ACTIVO</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3" style="border-bottom: 2px solid #ccc; padding-bottom: 10px;">
+    <h4 class="text-uppercase fw-bold m-0" style="color: #003366;">RED DE RUTAS</h4>
+</div>
+
+<div class="row">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #4A235A; color: #FFF;">LÍNEA 1</span>
+                <small class="d-block mt-2 text-muted fw-semibold">CENTRO CÍVICO - ZONA 1</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #9B59B6; color: #FFF;">LÍNEA 2</span>
+                <small class="d-block mt-2 text-muted fw-semibold">SAN SEBASTIÁN - ZONA 1</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #F1C40F; color: #000;">LÍNEA 6</span>
+                <small class="d-block mt-2 text-muted fw-semibold">PROYECTOS - ZONA 6</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #7F8C8D; color: #FFF;">LÍNEA 7</span>
+                <small class="d-block mt-2 text-muted fw-semibold">USAC PERIFÉRICO - ZONA 12</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #D35400; color: #FFF;">LÍNEA 12</span>
+                <small class="d-block mt-2 text-muted fw-semibold">CENTRA SUR - ZONA 12</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #27AE60; color: #FFF;">LÍNEA 13</span>
+                <small class="d-block mt-2 text-muted fw-semibold">PLAZA ARGENTINA - ZONA 13</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #2980B9; color: #FFF;">LÍNEA 18</span>
+                <small class="d-block mt-2 text-muted fw-semibold">ATLÁNTIDA - ZONA 18</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card bg-light border-0 shadow-sm h-100">
+            <div class="card-body text-center p-3">
+                <span class="badge w-100 fs-6 py-2" style="background-color: #000080; color: #FFF;">RUTA 5</span>
+                <small class="d-block mt-2 text-muted fw-semibold">PARQUE COLÓN - ZONA 1</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .pulse-animation { animation: pulse 1.5s infinite; }
+    @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+</style>

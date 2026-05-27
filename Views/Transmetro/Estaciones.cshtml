@@ -1,0 +1,132 @@
+﻿@model IEnumerable<TRANSMETRO.Models.Estacion>
+@{ ViewData["Title"] = "CONTROL DE ESTACIONES"; }
+
+<div class="d-flex justify-content-between align-items-center mt-4 border-bottom pb-2">
+    <h2 class="text-uppercase fw-bold text-primary">MONITOREO DE ESTACIONES EN TIEMPO REAL</h2>
+    <span class="badge bg-danger pulse-animation" style="font-size:16px;">◉ EN VIVO</span>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0 text-uppercase fw-bold">REGISTRAR NUEVA ESTACIÓN</h5>
+            </div>
+            <div class="card-body bg-light">
+                <form action="@Url.Action("RegistrarEstacion", "Transmetro")" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase">NOMBRE DE ESTACIÓN</label>
+                        <input type="text" name="nombre" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase">CAPACIDAD MÁXIMA</label>
+                        <input type="number" name="capacidad" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-uppercase">OCUPACIÓN ACTUAL</label>
+                        <input type="number" name="ocupacion" class="form-control" required />
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold text-uppercase">GUARDAR DATOS</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white d-flex justify-content-between">
+                <h5 class="mb-0 text-uppercase fw-bold">AFORO DE ESTACIONES</h5>
+                <small>ACTUALIZACIÓN: <span id="relojEstaciones"></span></small>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">
+                        <thead class="table-secondary text-uppercase">
+                            <tr>
+                                <th style="width: 15%;">ID</th>
+                                <th style="width: 25%;">ESTACIÓN</th>
+                                <th style="width: 30%;">OCUPACIÓN / MÁXIMA</th>
+                                <th style="width: 30%;">ESTADO DE SEGURIDAD</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaEstaciones">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .pulse-animation { animation: pulse 1.5s infinite; }
+    @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+    .badge-estado { display: inline-block; width: 100%; text-align: center; font-size: 13px; }
+</style>
+
+<script>
+   
+    const datosIniciales = @Html.Raw(Json.Serialize(Model)) || [];
+    
+
+    let estaciones = datosIniciales.map(e => {
+        return {
+            id: e.idEstacion || e.IdEstacion,
+            nombre: e.nombre || e.Nombre,
+            max: e.capacidadMaxima || e.CapacidadMaxima,
+            ocup: e.ocupacionActual || e.OcupacionActual
+        };
+    });
+
+    // SIMULACIÓN - FLUJO DE PERSONAS EN ESTACIONES
+    function actualizarEstaciones() {
+        const tbody = document.getElementById('tablaEstaciones');
+        tbody.innerHTML = '';
+        document.getElementById('relojEstaciones').innerText = new Date().toLocaleTimeString();
+
+        estaciones.forEach(est => {
+         
+            est.ocup += Math.floor(Math.random() * 13); 
+        
+            if (Math.random() < 0.30) {
+                est.ocup -= Math.floor(Math.random() * 36) + 20; 
+            }
+     
+            if (est.ocup < 0) est.ocup = 0;
+            if (est.ocup > est.max) est.ocup = est.max;
+
+            let porcentajeOcup = (est.ocup / est.max) * 100;
+            let requiereAlerta = (porcentajeOcup > 50);
+
+            let colorBarra = "bg-success";
+            let estadoHtml = `<span class="badge bg-success badge-estado p-2">NORMAL - ${porcentajeOcup.toFixed(1)}%</span>`;
+
+            if (requiereAlerta) {
+                colorBarra = "bg-danger";
+                estadoHtml = `<span class="badge bg-danger badge-estado p-2 pulse-animation">¡ALERTA! ${porcentajeOcup.toFixed(1)}% - DESPACHAR BUS</span>`;
+            }
+
+            // DISEÑO DE LA FILA
+            let fila = `
+                <tr>
+                    <td><strong>${est.id}</strong></td>
+                    <td class="text-uppercase fw-bold text-muted" style="font-size: 13px;">${est.nombre}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="progress flex-grow-1 me-2" style="height: 18px;">
+                                <div class="progress-bar ${colorBarra} progress-bar-striped progress-bar-animated" style="width: ${porcentajeOcup}%"></div>
+                            </div>
+                            <span class="fw-bold" style="min-width: 60px; text-align: right; font-size: 13px;">${est.ocup} / ${est.max}</span>
+                        </div>
+                    </td>
+                    <td>${estadoHtml}</td>
+                </tr>
+            `;
+            tbody.innerHTML += fila;
+        });
+    }
+
+    // ACTUALIZACIÓN CADA 2.5 SEGUNDOS
+    setInterval(actualizarEstaciones, 2500);
+    actualizarEstaciones();
+</script>
