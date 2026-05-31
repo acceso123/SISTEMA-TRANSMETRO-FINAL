@@ -1,0 +1,130 @@
+@model IEnumerable<Transmetro.Models.Piloto>
+@{
+    ViewData["Title"] = "CENTRO DE MANDO";
+}
+
+<div class="container mt-4">
+    <h2 class="text-primary border-bottom pb-2 fw-bold text-uppercase">CENTRO DE MANDO - PERSONAL Y FLOTA</h2>
+
+    <!-- FORMULARIOS ARRIBA -->
+    <div class="row mt-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-success shadow-sm">
+                <div class="card-header bg-success text-white fw-bold text-uppercase">+ REGISTRAR PILOTO</div>
+                <div class="card-body">
+                    <form asp-action="Registrar" method="post">
+                        <input type="text" class="form-control mb-2 text-uppercase" name="Nombre" placeholder="NOMBRE" required />
+                        <input type="text" class="form-control mb-2 text-uppercase" name="Telefono" placeholder="TELÉFONO" maxlength="9" required />
+                        <select class="form-select mb-3 text-uppercase" name="HistorialEducativo">
+                            <option value="DIVERSIFICADO">DIVERSIFICADO</option>
+                            <option value="TÉCNICO AUTOMOTRIZ">TÉCNICO AUTOMOTRIZ</option>
+                        </select>
+                        <button type="submit" class="btn btn-success w-100 fw-bold">GUARDAR</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card border-dark shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold text-uppercase">+ ASIGNAR UNIDAD</div>
+                <div class="card-body">
+                    <form asp-action="Asignar" method="post">
+                        <select class="form-select mb-3 text-uppercase" name="busId" required>
+                            <option value="">SELECCIONE BUS</option>
+                            @foreach (var b in ViewBag.BusesDisponibles)
+                            {
+                                <option value="@b">@b</option>
+                            }
+                        </select>
+                        <select class="form-select mb-3 text-uppercase" name="pilotoId" required>
+                            <option value="">SELECCIONE PILOTO</option>
+                            @foreach (var p in ViewBag.PilotosDisponibles)
+                            {
+                                <option value="@p.Id">@p.Nombre.ToUpper()</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-dark w-100 fw-bold">ASIGNAR</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA ABAJO -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-uppercase fw-bold">PERSONAL REGISTRADO</h5>
+                    <span class="badge bg-primary" style="font-size: 14px;">@Model.Count()</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">
+                            <thead class="table-secondary text-uppercase">
+                                <tr style="text-align: center;">
+                                    <th style="width: 12%; text-align: center;">ID PILOTO</th>
+                                    <th style="width: 20%; text-align: center;">NOMBRE</th>
+                                    <th style="width: 12%; text-align: center;">TELÉFONO</th>
+                                    <th style="width: 18%; text-align: center;">HISTORIAL EDUCATIVO</th>
+                                    <th style="width: 14%; text-align: center;">ESTADO</th>
+                                    <th style="width: 14%; text-align: center;">UNIDAD ASIGNADA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    @foreach (var piloto in Model)
+                                    {
+                                        <tr>
+                                            <td style="text-align: center; font-weight: bold; text-transform: uppercase;">@piloto.Id</td>
+                                            <td style="text-align: center; font-weight: bold; font-size: 12px; text-transform: uppercase;">@piloto.Nombre</td>
+                                            <td style="text-align: center; font-size: 12px; text-transform: uppercase;">@piloto.Telefono</td>
+                                            <td style="text-align: center; font-size: 11px; color: #666; text-transform: uppercase;">@piloto.HistorialEducativo</td>
+                                            <td style="text-align: center;">
+                                                @if (piloto.Disponible)
+                                                {
+                                                    <span class="badge bg-success" style="font-size: 12px; padding: 6px 10px;">DISPONIBLE</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark" style="font-size: 12px; padding: 6px 10px;">EN RUTA</span>
+                                                }
+                                            </td>
+                                            <td style="text-align: center;">
+                                                @if (piloto.BusAsignado != "Ninguno" && !string.IsNullOrEmpty(piloto.BusAsignado))
+                                                {
+                                                    <span class="badge bg-primary" style="font-size: 12px; padding: 6px 10px; text-transform: uppercase;">@piloto.BusAsignado</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted" style="font-size: 12px;">-</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">
+                                            No hay pilotos registrados
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table tbody td {
+        padding: 8px 10px !important;
+        vertical-align: middle;
+    }
+</style>

@@ -1,37 +1,34 @@
-﻿@model IEnumerable<TRANSMETRO.Models.Bus>
-@{ ViewData["Title"] = "RUTAS - GPS"; }
+@{
+    ViewData["Title"] = "RUTAS - GPS";
+}
 
 <div class="d-flex justify-content-between align-items-center mt-4 border-bottom pb-2">
-      <h2 class="text-uppercase fw-bold text-primary">MONITOREO DE LÍNEAS EN TIEMPO REAL</h2>
+    <h2 class="text-uppercase fw-bold text-primary">MONITOREO DE LÍNEAS EN TIEMPO REAL</h2>
     <span class="badge bg-danger pulse-animation" style="font-size:16px;">◉ EN VIVO</span>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-dark text-white d-flex justify-content-between">
-                <h5 class="mb-0">RED - TRANSMETRO</h5>
-                <small>ACTUALIZACIÓN: <span id="reloj"></span></small>
-            </div>
-            <div class="card-body bg-light">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle table-fixed">
-                        <thead class="table-secondary">
-                            <tr>
-                                <th style="width: 10%;">UNIDAD</th>
-                                <th style="width: 18%;">LÍNEA / DESTINO</th>
-                                <th style="width: 12%;">PILOTO</th>
-                                <th style="width: 10%;">VELOCIDAD</th>
-                                <th style="width: 15%;">PROGRESO</th>
-                                <th style="width: 15%;">OCUPACIÓN</th>
-                                <th style="width: 20%;">ESTADO</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tablaSimulada">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
+<div class="card shadow-sm border-0 mt-4">
+    <div class="card-header bg-dark text-white d-flex justify-content-between">
+        <h5 class="mb-0 text-uppercase fw-bold">RED - TRANSMETRO</h5>
+        <small>ACTUALIZACIÓN: <span id="relojRutas"></span></small>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">
+                <thead class="table-secondary text-uppercase">
+                    <tr style="text-align: center;">
+                        <th style="width: 8%; text-align: center;">UNIDAD</th>
+                        <th style="width: 16%; text-align: center;">LÍNEA / DESTINO</th>
+                        <th style="width: 14%; text-align: center;">PILOTO</th>
+                        <th style="width: 8%; text-align: center;">VELOCIDAD</th>
+                        <th style="width: 12%; text-align: center;">PROGRESO</th>
+                        <th style="width: 18%; text-align: center;">OCUPACIÓN</th>
+                        <th style="width: 18%; text-align: center;">ESTADO</th>
+                    </tr>
+                </thead>
+                <tbody id="tablaRutas">
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -39,125 +36,207 @@
 <style>
     .pulse-animation { animation: pulse 1.5s infinite; }
     @@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-    .progress { height: 20px; background-color: #343a40; }
-    .progress-bar { transition: width 1s ease-in-out; }
-    .table-fixed { table-layout: fixed; width: 100%; }
-    .badge-estado { display: inline-block; width: 100%; text-align: center; padding: 8px; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .badge-estado { display: inline-block; width: 100%; text-align: center; font-size: 10px; padding: 4px 8px !important; white-space: nowrap; }
+
+    .linea-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 4px;
+        color: white;
+        font-weight: bold;
+        font-size: 11px;
+        margin-bottom: 3px;
+        text-align: center;
+        width: 100%;
+    }
+
+    .destino-texto {
+        font-size: 10px;
+        color: #666;
+        text-align: center;
+        text-transform: uppercase;
+        margin-top: 2px;
+    }
+
+    .velocidad-badge {
+        background-color: #6c757d;
+        color: white;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 11px;
+        display: inline-block;
+    }
+
+    .table tbody td {
+        padding: 8px 10px !important;
+        vertical-align: middle;
+    }
+
+    .progress {
+        min-height: 16px !important;
+    }
 </style>
 
 <script>
-    // PILOTOS 
-    const nombres = ["Carlos", "Luis", "Ana", "Jorge", "María", "Pedro", "Sofía", "Miguel", "Lucía", "Diego"];
-    const apellidos = ["García", "Pérez", "López", "Martínez", "Rodríguez", "Gómez", "Fernández", "Díaz", "Morales", "Ramírez"];
-    function generarNombrePiloto() { return nombres[Math.floor(Math.random() * nombres.length)] + " " + apellidos[Math.floor(Math.random() * apellidos.length)]; }
-
     // BASE DE DATOS
-    function obtenerDatosOficiales(linea) {
-        const lineasOficiales = {
-            "LÍNEA 1": { color: "#FFF", bg: "#4A235A", destino: "CENTRO CÍVICO - ZONA 1" },
-            "LÍNEA 2": { color: "#FFF", bg: "#9B59B6", destino: "SAN SEBASTIÁN - ZONA 1" },
-            "LÍNEA 6": { color: "#000", bg: "#F1C40F", destino: "PROYECTOS - ZONA 6" },
-            "LÍNEA 7": { color: "#FFF", bg: "#7F8C8D", destino: "USAC PERIFÉRICO - ZONA 12" },
-            "LÍNEA 12": { color: "#FFF", bg: "#D35400", destino: "CENTRA SUR - ZONA 12" },
-            "LÍNEA 13": { color: "#FFF", bg: "#27AE60", destino: "PLAZA ARGENTINA - ZONA 13" },
-            "LÍNEA 18": { color: "#FFF", bg: "#2980B9", destino: "ATLÁNTIDA - ZONA 18" },
-            "RUTA 5": { color: "#FFF", bg: "#000080", destino: "PARQUE COLÓN - ZONA 1" }
-        };
-        
-        return lineasOficiales[linea.toUpperCase()] || { color: "#000", bg: "#ECF0F1", destino: "RUTA EN ASIGNACIÓN" };
-    }
+    const pilotosAsignados = {
+        @foreach (var p in Transmetro.Models.DataRepository.Pilotos.Where(p => p.BusAsignado != "Ninguno"))
+        {
+            @Html.Raw($"\"{p.BusAsignado}\": {{nombre: \"{p.Nombre.ToUpper()}\", id: \"{p.Id}\"}},")
+        }
+    };
 
-    // DATOS DE C#
-    const datosReales = @Html.Raw(Json.Serialize(Model));
-    let buses = datosReales.map(b => {
-        let nombreLinea = (b.lineaAsignada || "").toUpperCase(); 
-        let datosOficiales = obtenerDatosOficiales(nombreLinea);
-        return {
-            id: b.idBus,
-            linea: nombreLinea, 
-            destino: datosOficiales.destino,
-            colorBg: datosOficiales.bg,
-            colorTxt: datosOficiales.color,
-            piloto: generarNombrePiloto(),
-            vel: 0,
-            progreso: Math.floor(Math.random() * 100), 
-            ocup: b.pasajerosActuales,
-            max: b.capacidadMaxima
-        };
-    });
+    const datosBuses = @Html.Raw(Json.Serialize(Transmetro.Models.DataRepository.Buses)) || [];
 
-    // SIMULACIÓN
-    function actualizarDashboard() {
-        const tbody = document.getElementById('tablaSimulada');
+    const coloresLinea = {
+        "LÍNEA 1":  "#6B21A8",
+        "LÍNEA 2":  "#A855F7",
+        "LÍNEA 6":  "#FBBF24",
+        "LÍNEA 7":  "#6C757D",
+        "LÍNEA 12": "#EA580C",
+        "LÍNEA 13": "#22C55E",
+        "LÍNEA 18": "#0EA5E9",
+        "RUTA 5":   "#1E40AF"
+    };
+
+    const destinosLinea = {
+        "LÍNEA 1":  "CENTRO CÍVICO - ZONA 1",
+        "LÍNEA 2":  "SAN SEBASTIÁN - ZONA 1",
+        "LÍNEA 6":  "PROYECTOS - ZONA 6",
+        "LÍNEA 7":  "USAC PERIFÉRICO - ZONA 12",
+        "LÍNEA 12": "CENTRA SUR - ZONA 12",
+        "LÍNEA 13": "PLAZA ARGENTINA - ZONA 13",
+        "LÍNEA 18": "ATLÁNTIDA - ZONA 18",
+        "RUTA 5":   "PARQUE COLÓN - ZONA 1"
+    };
+
+    // MAPEO - FILTRAR UNIDADES CON PILOTOS ASIGNADOS
+    let unidades = datosBuses
+        .filter(b => pilotosAsignados[b.idBus || b.IdBus])
+        .map(b => {
+            const busId = b.idBus || b.IdBus;
+            return {
+                id:        busId,
+                piloto:    pilotosAsignados[busId].nombre,
+                velocidad: 0,
+                progreso:  Math.floor(Math.random() * 60),
+                ocupacion: b.pasajerosActuales || b.PasajerosActuales || 0,
+                capacidad: b.capacidadMaxima   || b.CapacidadMaxima   || 80,
+                linea:     b.lineaAsignada     || b.LineaAsignada     || "SIN ASIGNAR"
+            };
+        });
+
+    // SIMULACIÓN - FLUJO DE PASAJEROS EN RUTAS
+    function actualizarRutas() {
+        const tbody = document.getElementById('tablaRutas');
         tbody.innerHTML = '';
-        document.getElementById('reloj').innerText = new Date().toLocaleTimeString();
+        document.getElementById('relojRutas').innerText = new Date().toLocaleTimeString();
 
-        buses.forEach(bus => {
-            let porcentajeOcup = (bus.ocup / bus.max) * 100;
-            let estaPenalizado = (porcentajeOcup < 25);
+        if (unidades.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay unidades asignadas a pilotos en este momento</td></tr>`;
+            return;
+        }
 
-            let colorOcupacion = "bg-success";
-            let estadoTexto = "<span class='badge bg-success badge-estado text-uppercase'>EN TRÁNSITO</span>";
+        unidades.forEach(unidad => {
+            // OCUPACIÓN - Varía ±3 pasajeros
+            const varOcup = Math.floor(Math.random() * 7) - 3;
+            unidad.ocupacion = Math.max(0, Math.min(unidad.capacidad, unidad.ocupacion + varOcup));
+            let porcentajeOcup = (unidad.ocupacion / unidad.capacidad) * 100;
 
-            if (estaPenalizado) {
-                bus.vel = 0; 
-                bus.ocup += Math.floor(Math.random() * 3) + 1; 
-                if (bus.ocup > bus.max) bus.ocup = bus.max;
+            // REGLA 25%
+            let penalizado = (porcentajeOcup < 25);
 
-                colorOcupacion = "bg-warning text-dark";
-                estadoTexto = "<span class='badge bg-warning text-dark badge-estado text-uppercase'>REGLA 25% - ESPERA DE 5 MIN</span>";
+            if (penalizado) {
+                // BUS DEMASIADO VACÍO - PENALIZACIÓN
+                unidad.velocidad = 0;
+                
+                unidad.ocupacion = Math.min(unidad.capacidad, unidad.ocupacion + Math.floor(Math.random() * 3) + 1);
+                porcentajeOcup = (unidad.ocupacion / unidad.capacidad) * 100;
             } else {
-                bus.progreso += Math.floor(Math.random() * 5);
-                if (bus.progreso > 100) bus.progreso = 0; 
+                // BUS EN MOVIMIENTO NORMAL
+               
+                unidad.progreso += Math.floor(Math.random() * 5) + 1;
+                if (unidad.progreso >= 100) unidad.progreso = 0;
 
-                if (bus.progreso > 0 && bus.progreso < 100) { 
-                    bus.vel = Math.floor(Math.random() * (55 - 25 + 1)) + 25; 
-                } else { 
-                    bus.vel = 0; 
-                }
-
-                bus.ocup += Math.floor(Math.random() * 7) - 3; 
-                if (bus.ocup < 0) bus.ocup = 0;
-                if (bus.ocup > bus.max) bus.ocup = bus.max;
-
-                if (porcentajeOcup > 50) {
-                    colorOcupacion = "bg-danger";
+                if (unidad.progreso === 0 || unidad.progreso >= 100) {
+                    unidad.velocidad = 0;
+                } else {
+                    unidad.velocidad = Math.floor(Math.random() * 31) + 25;
                 }
             }
-          
+
+            // COLORES DE BARRA DE OCUPACIÓN
+            let colorBarraOcup = "bg-warning";
+            if (penalizado) {
+                colorBarraOcup = "bg-warning";
+            } else if (porcentajeOcup > 50) {
+                colorBarraOcup = "bg-danger";
+            } else {
+                colorBarraOcup = "bg-warning";
+            }
+
+            // ESTADO DEL BUS
+            let estadoHtml = "";
+            if (penalizado) {
+                estadoHtml = `<span class="badge bg-warning text-dark badge-estado pulse-animation">REGLA 25% - ESPERA</span>`;
+            } else {
+                estadoHtml = `<span class="badge bg-success badge-estado">EN TRÁNSITO</span>`;
+            }
+
+            const colorLinea = coloresLinea[unidad.linea] || "#6C757D";
+            const destino    = destinosLinea[unidad.linea] || "";
+
+            // DISEÑO DE LA FILA
             let fila = `
                 <tr>
-                    <td><strong>${bus.id}</strong></td>
-                    <td>
-                        <span class="badge fw-bold" style="background-color: ${bus.colorBg}; color: ${bus.colorTxt}; font-size:13px; width: 100%; padding: 6px;">
-                            ${bus.linea}
-                        </span>
-                        <div style="font-size: 11px; margin-top:4px;" class="text-muted text-center fw-bold">
-                            ${bus.destino}
-                        </div>
+                    <td style="text-align: center; font-weight: bold; font-size: 13px;">${unidad.id}</td>
+                    <td style="text-align: center;">
+                        <span class="linea-badge" style="background-color: ${colorLinea};">${unidad.linea}</span>
+                        <div class="destino-texto">${destino}</div>
                     </td>
-                    <td>${bus.piloto}</td>
-                    <td><span class="badge bg-secondary" style="width:70px;">${bus.vel} km/h</span></td>
-                    <td>
-                        <div class="progress">
-                            <div class="progress-bar bg-info progress-bar-striped progress-bar-animated" style="width: ${bus.progreso}%"></div>
-                        </div>
+                    <td style="text-align: center; font-weight: bold; font-size: 12px;">${unidad.piloto}</td>
+                    <td style="text-align: center;">
+                        <span class="velocidad-badge">${unidad.velocidad} km/h</span>
                     </td>
                     <td>
-                        <div class="d-flex align-items-center">
-                            <div class="progress flex-grow-1 me-2" style="height: 18px;">
-                                <div class="progress-bar ${colorOcupacion}" style="width: ${porcentajeOcup}%"></div>
+                        <div class="d-flex align-items-center" style="gap: 6px;">
+                            <div class="progress flex-grow-1" style="height: 16px;">
+                                <div class="progress-bar bg-info progress-bar-striped progress-bar-animated"
+                                     style="width: ${unidad.progreso}%"></div>
                             </div>
-                            <span class="fw-bold" style="min-width: 65px; text-align: right; font-size: 13px;">${bus.ocup} / ${bus.max}</span>
                         </div>
                     </td>
-                    <td>${estadoTexto}</td>
+                    <td>
+                        <div class="d-flex align-items-center" style="gap: 6px;">
+                            <div class="progress flex-grow-1" style="height: 16px;">
+                                <div class="progress-bar ${colorBarraOcup} progress-bar-striped progress-bar-animated"
+                                     style="width: ${porcentajeOcup.toFixed(1)}%"></div>
+                            </div>
+                            <span class="fw-bold" style="min-width: 50px; text-align: right; font-size: 12px;">${unidad.ocupacion} / ${unidad.capacidad}</span>
+                        </div>
+                    </td>
+                    <td style="text-align: center;">${estadoHtml}</td>
                 </tr>
             `;
             tbody.innerHTML += fila;
         });
     }
 
-    setInterval(actualizarDashboard, 3000);
-    actualizarDashboard();
+    // ACTUALIZACIÓN CADA 2 SEGUNDOS
+    function iniciar() {
+        if (unidades.length === 0) {
+            document.getElementById('tablaRutas').innerHTML = `
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        No hay unidades asignadas a pilotos en este momento
+                    </td>
+                </tr>`;
+            return;
+        }
+        actualizarRutas();
+        setInterval(actualizarRutas, 2000);
+    }
+
+    iniciar();
 </script>

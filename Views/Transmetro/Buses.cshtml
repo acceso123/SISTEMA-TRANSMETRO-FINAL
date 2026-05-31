@@ -1,4 +1,4 @@
-﻿@model IEnumerable<TRANSMETRO.Models.Bus>
+﻿@model IEnumerable<Transmetro.Models.Bus>
 @{ ViewData["Title"] = "CONTROL DE BUSES"; }
 
 <div class="d-flex justify-content-between align-items-center mt-4 border-bottom pb-2">
@@ -16,7 +16,17 @@
                 <form action="@Url.Action("RegistrarBus", "Transmetro")" method="post">
                     <div class="mb-3">
                         <label class="form-label fw-bold text-uppercase">LÍNEA ASIGNADA</label>
-                        <input type="text" name="linea" class="form-control"/>
+                        <select name="linea" class="form-select" required>
+                            <option value="">SELECCIONE LÍNEA</option>
+                            <option value="LÍNEA 1">LÍNEA 1 - CENTRO CÍVICO - ZONA 1</option>
+                            <option value="LÍNEA 2">LÍNEA 2 - SAN SEBASTIÁN - ZONA 1</option>
+                            <option value="LÍNEA 6">LÍNEA 6 - PROYECTOS - ZONA 6</option>
+                            <option value="LÍNEA 7">LÍNEA 7 - USAC PERIFÉRICO - ZONA 12</option>
+                            <option value="LÍNEA 12">LÍNEA 12 - CENTRA SUR - ZONA 12</option>
+                            <option value="LÍNEA 13">LÍNEA 13 - PLAZA ARGENTINA - ZONA 13</option>
+                            <option value="LÍNEA 18">LÍNEA 18 - ATLÁNTIDA - ZONA 18</option>
+                            <option value="RUTA 5">RUTA 5 - PARQUE COLÓN - ZONA 1</option>
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold text-uppercase">CAPACIDAD MÁXIMA</label>
@@ -42,11 +52,11 @@
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0" style="table-layout: fixed; width: 100%;">
                         <thead class="table-secondary text-uppercase">
-                            <tr>
-                                <th style="width: 15%;">ID - BUS</th>
-                                <th style="width: 25%;">LÍNEA</th>
-                                <th style="width: 30%;">OCUPACIÓN / MÁXIMA</th>
-                                <th style="width: 30%;">INSTRUCCIÓN ALGORÍTMICA</th>
+                            <tr style="text-align: center;">
+                                <th style="width: 15%; text-align: center;">ID - BUS</th>
+                                <th style="width: 25%; text-align: center;">LÍNEA</th>
+                                <th style="width: 30%; text-align: center;">OCUPACIÓN / MÁXIMA</th>
+                                <th style="width: 30%; text-align: center;">INSTRUCCIÓN ALGORÍTMICA</th>
                             </tr>
                         </thead>
                         <tbody id="tablaBuses">
@@ -67,16 +77,18 @@
 <script>
     // BASE DE DATOS
     const datosBuses = @Html.Raw(Json.Serialize(Model)) || [];
-    
-    // MAPEO
-    let flota = datosBuses.map(b => {
-        return {
-            id: b.idBus || b.IdBus,
-            linea: b.lineaAsignada || b.LineaAsignada,
-            max: b.capacidadMaxima || b.CapacidadMaxima,
-            ocup: b.pasajerosActuales || b.PasajerosActuales
-        };
-    });
+
+    // MAPEO - FILTRAR BUSES CON CAPACIDAD VÁLIDA
+    let flota = datosBuses
+        .filter(b => (b.capacidadMaxima || b.CapacidadMaxima) > 0)
+        .map(b => {
+            return {
+                id: b.idBus || b.IdBus,
+                linea: b.lineaAsignada || b.LineaAsignada || "SIN ASIGNAR",
+                max: b.capacidadMaxima || b.CapacidadMaxima,
+                ocup: b.pasajerosActuales || b.PasajerosActuales || 0
+            };
+        });
 
     // SIMULACIÓN - FLUJO DE PASAJEROS EN BUSES
     function actualizarBuses() {
@@ -108,17 +120,17 @@
             // DISEÑO DE FILA
             let fila = `
                 <tr>
-                    <td><strong>${bus.id}</strong></td>
-                    <td class="text-uppercase fw-bold text-muted" style="font-size: 13px;">${bus.linea}</td>
+                    <td style="text-align: center; font-weight: bold;">${bus.id}</td>
+                    <td style="text-align: center; font-weight: bold; font-size: 12px;">${bus.linea}</td>
                     <td>
-                        <div class="d-flex align-items-center">
-                            <div class="progress flex-grow-1 me-2" style="height: 18px;">
+                        <div class="d-flex align-items-center" style="gap: 6px;">
+                            <div class="progress flex-grow-1" style="height: 16px;">
                                 <div class="progress-bar ${colorBarra} progress-bar-striped progress-bar-animated" style="width: ${porcentajeOcup}%"></div>
                             </div>
-                            <span class="fw-bold" style="min-width: 60px; text-align: right; font-size: 13px;">${bus.ocup} / ${bus.max}</span>
+                            <span class="fw-bold" style="min-width: 50px; text-align: right; font-size: 12px;">${bus.ocup} / ${bus.max}</span>
                         </div>
                     </td>
-                    <td>${estadoHtml}</td>
+                    <td style="text-align: center;">${estadoHtml}</td>
                 </tr>
             `;
             tbody.innerHTML += fila;
@@ -126,6 +138,20 @@
     }
 
     // ACTUALIZACIÓN CADA 2.5 SEGUNDOS
-    setInterval(actualizarBuses, 2500);
-    actualizarBuses();
+    function iniciar() {
+        if (flota.length === 0) {
+            document.getElementById('tablaBuses').innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        No hay unidades registradas con datos válidos
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+        setInterval(actualizarBuses, 2500);
+        actualizarBuses();
+    }
+
+    iniciar();
 </script>

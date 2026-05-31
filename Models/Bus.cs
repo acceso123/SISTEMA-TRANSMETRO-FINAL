@@ -1,4 +1,4 @@
-﻿namespace TRANSMETRO.Models
+﻿namespace Transmetro.Models
 {
     public class Bus
     {

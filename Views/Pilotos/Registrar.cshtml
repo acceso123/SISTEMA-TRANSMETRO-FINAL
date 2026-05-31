@@ -1,0 +1,33 @@
+﻿@model Transmetro.Models.Piloto
+@{
+    ViewData["Title"] = "Registrar Piloto";
+}
+
+<div class="container mt-5">
+    <h2 class="text-primary border-bottom pb-2">REGISTRAR NUEVO PILOTO</h2>
+    <p class="text-muted">Cumplimiento de REQ-0007 - Módulo de Recursos Humanos</p>
+
+    <div class="card shadow-sm mt-4" style="max-width: 600px;">
+        <div class="card-body">
+            <form asp-action="Registrar" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nombre Completo</label>
+                    <input type="text" class="form-control" asp-for="Nombre" required placeholder="Ej. Jorge Morales">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Teléfono de Contacto</label>
+                        <input type="text" class="form-control" asp-for="Telefono" required placeholder="Ej. 5555-1234">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Historial Educativo</label>
+                            <select class="form-select" asp-for="HistorialEducativo">
+                                <option value="Diversificado">Diversificado</option>
+                                <option value="Técnico Automotriz">Técnico Automotriz</option>
+                                <option value="Universitario">Universitario</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 fw-bold">GUARDAR PILOTO EN SISTEMA</button>
+                    </form>
+                </div>
+            </div>
+        </div>

@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
-using TRANSMETRO.Models;
+using Transmetro.Models;
 using System.Linq;
 
-namespace TuProyectoAca.Controllers
+namespace Transmetro.Controllers
 {
     public class TransmetroController : Controller
     {
-        // DATOS EN MEMORIA
+        // BASE DE DATOS - ESTACIONES
         private static List<Estacion> dbEstaciones = new List<Estacion>
         {
-         
+
             new Estacion { IdEstacion = "EST-01", Nombre = "CENTRA SUR - ZONA 12", CapacidadMaxima = 500, OcupacionActual = 210 },
             new Estacion { IdEstacion = "EST-02", Nombre = "EL TRÉBOL - ZONA 8", CapacidadMaxima = 300, OcupacionActual = 180 },
             new Estacion { IdEstacion = "EST-03", Nombre = "PLAZA BARRIOS - ZONA 1", CapacidadMaxima = 200, OcupacionActual = 85 },
@@ -23,20 +23,23 @@ namespace TuProyectoAca.Controllers
             new Estacion { IdEstacion = "EST-10", Nombre = "PLAZA ARGENTINA - ZONA 13", CapacidadMaxima = 150, OcupacionActual = 30 }
         };
 
-        private static List<Bus> dbBuses = new List<Bus>
-        {
-            new Bus { IdBus = "B-001", LineaAsignada = "LÍNEA 12", CapacidadMaxima = 160, PasajerosActuales = 25 },
-            new Bus { IdBus = "B-002", LineaAsignada = "LÍNEA 1", CapacidadMaxima = 160, PasajerosActuales = 90 },
-            new Bus { IdBus = "B-003", LineaAsignada = "LÍNEA 18", CapacidadMaxima = 80, PasajerosActuales = 15 },
-            new Bus { IdBus = "B-004", LineaAsignada = "LÍNEA 6", CapacidadMaxima = 80, PasajerosActuales = 60 }
-        };
-
-        // VISTA MENÚ PRINCIPAL
+        // INICIO - MENÚ PRINCIPAL
         public IActionResult Index()
         {
             ViewBag.TotalEstaciones = dbEstaciones.Count;
-            ViewBag.TotalBuses = dbBuses.Count;
-            ViewBag.TotalLineas = dbBuses.Select(b => b.LineaAsignada.ToUpper()).Distinct().Count();
+            ViewBag.TotalBuses = DataRepository.Buses.Count;
+
+            // CONTAR LÍNEAS CON PILOTOS ASIGNADOS
+            var pilotosAsignados = DataRepository.Pilotos
+                .Where(p => p.BusAsignado != "Ninguno" && !string.IsNullOrEmpty(p.BusAsignado))
+                .Select(p => p.BusAsignado)
+                .ToList();
+
+            ViewBag.TotalLineas = DataRepository.Buses
+                .Where(b => pilotosAsignados.Contains(b.IdBus) && !string.IsNullOrEmpty(b.LineaAsignada))
+                .Select(b => b.LineaAsignada.ToUpper())
+                .Distinct()
+                .Count();
 
             return View();
         }
@@ -47,7 +50,7 @@ namespace TuProyectoAca.Controllers
             return View(dbEstaciones);
         }
 
-        // REGISTRAR NUEVA ESTACIÓN
+        // REGISTRAR ESTACIÓN
         [HttpPost]
         public IActionResult RegistrarEstacion(string nombre, int capacidad, int ocupacion)
         {
@@ -65,15 +68,26 @@ namespace TuProyectoAca.Controllers
         // VISTA BUSES
         public IActionResult Buses()
         {
-            return View(dbBuses);
+            return View(DataRepository.Buses);
         }
 
-        // REGISTRAR NUEVO BUS
+        // REGISTRAR BUS
         [HttpPost]
         public IActionResult RegistrarBus(string linea, int capacidad, int ocupacion)
         {
-            string nuevoId = "TM-00" + (dbBuses.Count + 1);
-            dbBuses.Add(new Bus
+            // GENERAR ID AUTOMÁTICO
+            int maxNumber = 0;
+            foreach (var bus in DataRepository.Buses)
+            {
+                if (bus.IdBus.StartsWith("B-") && int.TryParse(bus.IdBus.Substring(2), out int num))
+                {
+                    if (num > maxNumber)
+                        maxNumber = num;
+                }
+            }
+            string nuevoId = "B-" + (maxNumber + 1).ToString("D3");
+
+            DataRepository.Buses.Add(new Bus
             {
                 IdBus = nuevoId,
                 LineaAsignada = linea,
@@ -86,7 +100,7 @@ namespace TuProyectoAca.Controllers
         // VISTA RUTAS
         public IActionResult Rutas()
         {
-            return View(dbBuses);
+            return View(DataRepository.Buses);
         }
     }
 }
